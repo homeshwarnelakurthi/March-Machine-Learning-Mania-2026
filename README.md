@@ -8,18 +8,7 @@
 - **Goal:** Predict the outcome of every possible matchup in the 2026 NCAA Men's and Women's Basketball Tournaments
 
 ---
-
-## Current Standing
-
-| Metric | Value |
-|---|---|
-| Best Public Score | 0.10570 |
-| Current Rank | 513 |
-| Best Submission | Ensemble XGB + LGB + LR |
-
----
-
-## What We Built
+## What Iam Built
 
 ### Data Used
 - Men's regular season detailed results (122,775 games, 34 stats per game)
