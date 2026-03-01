@@ -6,10 +6,6 @@
 ## Competition Overview
 
 - **Goal:** Predict the outcome of every possible matchup in the 2026 NCAA Men's and Women's Basketball Tournaments
-- **Metric:** Brier Score (lower is better)
-- **Submissions:** 519,144 rows covering all possible team matchups for seasons 2022–2026
-- **Prize:** $10,000 first place
-- **Deadline:** March 19, 2026
 
 ---
 
