@@ -1,122 +1,149 @@
-# March-Machine-Learning-Mania-2026
-### Kaggle Competition — NCAA Basketball Tournament Prediction
+# 🏀 March Machine Learning Mania 2026 — NCAA Tournament Bracket Prediction
+
+![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python&logoColor=white)
+![Kaggle](https://img.shields.io/badge/Kaggle-Competition-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-Ensemble-red?style=for-the-badge)
+![LightGBM](https://img.shields.io/badge/LightGBM-Ensemble-brightgreen?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Completed-brightgreen?style=for-the-badge)
 
 ---
 
-## Competition Overview
+## 📌 Project Overview
 
-- **Goal:** Predict the outcome of every possible matchup in the 2026 NCAA Men's and Women's Basketball Tournaments
+This repository contains a complete machine learning solution for **March Machine Learning Mania 2026** — Kaggle's annual NCAA Men's Basketball Tournament prediction competition. The goal is to predict the win probability for every possible matchup in the NCAA March Madness bracket.
 
----
-## What Iam Built
-
-### Data Used
-- Men's regular season detailed results (122,775 games, 34 stats per game)
-- Women's regular season detailed results (85,505 games)
-- NCAA Tournament results — Men's (2,585 games) and Women's (1,717 games)
-- Tournament seeds — Men's and Women's
-- Massey Ordinals — 5.7 million rows of rankings from dozens of rating systems
-- Sample Submission Stage 1 — 519,144 matchups to predict
+The solution combines **Elo ratings, seed differentials, Massey ordinal rankings, seasonal statistics, and recent form** into a powerful ensemble of XGBoost, LightGBM, and Logistic Regression models.
 
 ---
 
-### Features Engineered
+## 🏆 Competition Context
 
-**Elo Ratings (Margin of Victory variant)**
-- Season-by-season Elo computed from regular season games
-- K-factor adjusted by margin of victory using log scale
-- 50% carry-over of prior season rating to next season
-- Captures team strength trajectory over time
+> Each year, 68 college basketball teams compete in the NCAA Tournament. Predicting upsets and Cinderella stories requires capturing both season-long performance and late-season momentum. Models are evaluated using **Brier Score** (lower is better) — a proper scoring rule for probability predictions.
 
-**Season Statistics (from Detailed Box Scores)**
-- Win rate, average points scored and allowed, point differential
-- Field goal %, 3-point %, free throw %, true shooting %
-- Rebounds, assists, turnovers, steals, blocks per game
-- Computed separately for Men's and Women's
-
-**Seeds**
-- Tournament seed number parsed from seed string
-- Seed difference between matchup teams
-
-**Massey Ordinals Consensus Ranking**
-- Mean rank and minimum rank across all rating systems
-- Filtered to rankings within 133 days of tournament
-- Consensus view across dozens of expert ranking systems
-
-**Recent Form (Last 30 Days)**
-- Win rate and point differential in final 30 days of regular season
-- Captures hot and cold streaks heading into tournament
-
-**Tempo and Offensive/Defensive Efficiency**
-- Possessions per game (tempo)
-- Offensive efficiency: points scored per 100 possessions
-- Defensive efficiency: points allowed per 100 possessions
-- Net efficiency: offensive minus defensive
-- True shooting %, assist-to-turnover ratio, offensive rebound rate
-
-**Strength of Schedule**
-- Average opponent win rate faced during regular season
-- Average opponent point differential faced
-
-**Difference Features**
-- All key features computed as Team1 minus Team2 differential
-- EloDiff, SeedDiff, MeanRankDiff, NetEffDiff, WinRateDiff, SOSDiff, etc.
-
-**Final Feature Count: 47 features**
+- **Task:** Predict win probability for all 2278 possible Men's tournament matchups
+- **Evaluation Metric:** Brier Score Loss (lower = better)
+- **Platform:** Kaggle
+- **Season:** 2025–2026 NCAA Men's Basketball
 
 ---
 
-### Models Used
+## 🎯 Feature Engineering
 
-**XGBoost Classifier**
-- 600 estimators, learning rate 0.02, max depth 4
-- Subsample 0.8, column sample 0.8
-- Early stopping on validation log loss
+A rich set of features was engineered from historical game results:
 
-**LightGBM Classifier**
-- 600 estimators, learning rate 0.02, max depth 4
-- Early stopping with 50 rounds patience
+### Team Statistics (Season-Long)
+| Feature | Description |
+|---------|-------------|
+| `WinRate` | Season win percentage |
+| `AvgPtsFor` | Average points scored |
+| `AvgPtsAgn` | Average points allowed |
+| `AvgPtsDiff` | Average point differential |
+| `FGPct / FG3Pct / FTPct` | Field goal & free throw percentages |
+| `AvgReb / AvgAst / AvgTO / AvgStl / AvgBlk` | Advanced box score stats |
 
-**Logistic Regression**
-- C = 0.1, StandardScaler normalization
-- Serves as a linear baseline in the ensemble
+### Strength & Ranking Features
+| Feature | Description |
+|---------|-------------|
+| `EloDiff` | Elo rating differential between teams |
+| `SeedDiff` | Tournament seed differential |
+| `MeanRankDiff` | Massey ordinal ranking differential |
 
-**Ensemble Method**
-- Equal weighted average of all three models (1/3 each)
-- 5-fold Stratified Cross Validation for OOF evaluation
-- Predictions clipped to range [0.025, 0.975]
-
----
-
-## Key Learnings
-
-1. **More features did not help** — going from 43 to 67 features barely moved OOF score. With only 2,585 tournament game samples, overfitting is the main risk.
-
-2. **Isotonic calibration overfit** — improved OOF Brier but hurt public score. Platt scaling showed our model is already well-calibrated internally.
-
-3. **Regular season data hurt tournament prediction** — the two distributions are fundamentally different. Regular season has home court advantage and scheduling noise. Tournament is neutral site, high stakes, different dynamics entirely.
-
-4. **OOF Brier and public leaderboard are not perfectly correlated** — the leaderboard scores only on actual tournament game matchups (~3.5% of all submissions). Trust the leaderboard, not OOF alone.
-
-5. **SeedDiff and EloDiff are the dominant features** — they account for the majority of feature importance. Every other feature adds marginal signal on top of these two.
+### Momentum Features
+| Feature | Description |
+|---------|-------------|
+| `RecentWinRate` | Win rate over last 30 days |
+| `RecentPtsDiff` | Point differential over last 30 days |
 
 ---
 
-## Tech Stack
+## 🤖 Model Architecture
 
-- Python 3
-- Pandas, NumPy
-- XGBoost, LightGBM, Scikit-learn
-- Kaggle Notebooks (CPU)
-
----
-
-## Repository Structure
+A **5-fold cross-validated ensemble** of three model types:
 
 ```
-march-mania-2026/
+XGBoost (5 folds)
+    +
+LightGBM (5 folds)
+    +
+Logistic Regression (5 folds)
+    ↓
+Weighted Average → Win Probability
+```
+
+### Evaluation (Cross-Validation)
+- **Brier Score Loss** — measures calibration quality
+- **Log Loss** — measures probabilistic accuracy
+- All models validated on held-out fold before ensembling
+
+---
+
+## 📊 Technical Highlights
+
+### Elo Rating System
+```python
+def compute_elo(results_df, k=20, base=1500):
+    # Per-season Elo with 50% carry-over from prior season
+    # Updates after each game: winner gains, loser loses based on expected probability
+```
+
+### Massey Ordinal Rankings
+- Used rankings from the final week before tournament (cutoff day 133)
+- Averaged across all rating systems to create a composite rank
+
+### Recent Form Window
+- Last 30 days of games used to capture late-season momentum
+- Separate `RecentWinRate` and `RecentPtsDiff` features per team
+
+---
+
+## 🛠️ Tech Stack
+
+| Tool | Purpose |
+|------|---------|
+| Python 3.10+ | Core language |
+| Pandas / NumPy | Data processing |
+| XGBoost | Gradient boosting |
+| LightGBM | Gradient boosting |
+| Scikit-learn | Logistic Regression, cross-validation, metrics |
+| Kaggle Environment | Competition data access |
+
+---
+
+## 📁 Project Structure
+
+```
+March-Machine-Learning-Mania-2026/
 │
-├── march-mania-2026-winner.ipynb   # Main notebook with all cells
-├── submission.csv                   # Current best submission
-└── README.md                        # This file
+├── march-mania-2026.ipynb    # Complete solution notebook
+├── README.md
+└── LICENSE
 ```
+
+---
+
+## 🚀 How to Run
+
+This notebook is designed to run on **Kaggle** with the competition dataset attached.
+
+1. Open on Kaggle and attach the `march-machine-learning-mania-2026` dataset
+2. Run all cells sequentially
+3. Download the generated `submission.csv`
+
+---
+
+## 🔗 Competition Link
+
+[![Kaggle](https://img.shields.io/badge/View%20on%20Kaggle-March%20Mania%202026-20BEFF?style=for-the-badge&logo=kaggle)](https://www.kaggle.com/competitions/march-machine-learning-mania-2026)
+
+---
+
+## 👨‍💻 Author
+
+**Homeswar Rao Nelakurthi**
+[![GitHub](https://img.shields.io/badge/GitHub-homeshwarnelakurthi-181717?style=flat&logo=github)](https://github.com/homeshwarnelakurthi)
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
